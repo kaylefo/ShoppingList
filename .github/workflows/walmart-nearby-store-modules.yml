@@ -1,0 +1,39 @@
+name: Walmart nearby exact local-food modules
+
+on:
+  push:
+    branches:
+      - food-real-scrape-20260811
+    paths:
+      - 'real_price_scrape/walmart_nearby_store_modules.py'
+      - '.github/workflows/walmart-nearby-store-modules.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime
+        run: pip install httpx==0.28.1
+      - name: Scrape and validate nearby exact store modules
+        run: python real_price_scrape/walmart_nearby_store_modules.py
+      - name: Show manifest
+        if: always()
+        run: |
+          cat walmart_nearby_modules_output/manifest.json || true
+          find walmart_nearby_modules_output -maxdepth 2 -type f -printf '%p\t%s bytes\n' | sort || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: walmart-nearby-exact-local-food-modules
+          path: walmart_nearby_modules_output/
+          if-no-files-found: warn
+          retention-days: 7
