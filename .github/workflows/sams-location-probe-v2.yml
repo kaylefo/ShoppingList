@@ -1,0 +1,36 @@
+name: Sam's Club 6262 page-binding probe v2
+
+on:
+  push:
+    branches:
+      - food-real-scrape-20260811
+    paths:
+      - 'real_price_scrape/sams_location_probe_v2.py'
+      - '.github/workflows/sams-location-probe-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser runtime
+        run: |
+          pip install playwright==1.54.0
+          python -m playwright install --with-deps chromium
+      - name: Bind exact club and validate search
+        run: python real_price_scrape/sams_location_probe_v2.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sams-club-6262-location-probe-v2
+          path: sams_location_probe_v2_output/
+          if-no-files-found: warn
+          retention-days: 7
