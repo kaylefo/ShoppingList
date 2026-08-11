@@ -1,0 +1,33 @@
+name: Walmart De Zavala store-binding probe
+
+on:
+  push:
+    branches:
+      - food-real-scrape-20260811
+    paths:
+      - 'real_price_scrape/walmart_location_probe.py'
+      - '.github/workflows/walmart-location-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install httpx==0.28.1
+      - name: Test Walmart location binding variants
+        run: python real_price_scrape/walmart_location_probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: walmart-de-zavala-location-probe
+          path: walmart_location_probe_output/
+          if-no-files-found: warn
+          retention-days: 7
