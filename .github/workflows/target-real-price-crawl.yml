@@ -1,0 +1,45 @@
+name: Target real local grocery price crawl
+
+on:
+  push:
+    branches:
+      - food-real-scrape-20260811
+    paths:
+      - 'real_price_scrape/target_crawl.py'
+      - 'real_price_scrape/target_queries.py'
+      - '.github/workflows/target-real-price-crawl.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx==0.28.1
+      - name: Run production local-price crawl
+        run: python real_price_scrape/target_crawl.py
+      - name: Show manifest and file sizes
+        if: always()
+        run: |
+          find real_food_price_output -maxdepth 3 -type f -printf '%p\t%s bytes\n' | sort || true
+          find real_food_price_output -name manifest.json -exec cat {} \; || true
+      - name: Upload production corpus
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: utsa-madera-real-food-prices
+          path: real_food_price_output/
+          if-no-files-found: warn
+          retention-days: 7
