@@ -1,0 +1,36 @@
+name: Sam's Club 6262 exact-location probe
+
+on:
+  push:
+    branches:
+      - food-real-scrape-20260811
+    paths:
+      - 'real_price_scrape/sams_location_probe.py'
+      - '.github/workflows/sams-location-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install httpx==0.28.1 playwright==1.54.0
+          python -m playwright install --with-deps chromium
+      - name: Test direct and browser club selection
+        run: python real_price_scrape/sams_location_probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sams-club-6262-location-probe
+          path: sams_location_probe_output/
+          if-no-files-found: warn
+          retention-days: 7
