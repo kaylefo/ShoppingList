@@ -1,0 +1,44 @@
+name: Real grocery price probe
+
+on:
+  push:
+    branches:
+      - food-real-scrape-20260811
+    paths:
+      - 'real_price_scrape/**'
+      - '.github/workflows/real-price-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r real_price_scrape/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Run retailer probe
+        run: python real_price_scrape/probe.py
+      - name: Summarize files
+        if: always()
+        run: |
+          find probe_output -maxdepth 1 -type f -printf '%f\t%s bytes\n' | sort | head -300 || true
+      - name: Upload probe artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retailer-probe-output
+          path: probe_output/
+          if-no-files-found: warn
+          retention-days: 7
