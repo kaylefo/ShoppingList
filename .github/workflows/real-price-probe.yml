@@ -1,12 +1,6 @@
 name: Real grocery price probe
 
 on:
-  push:
-    branches:
-      - food-real-scrape-20260811
-    paths:
-      - 'real_price_scrape/**'
-      - '.github/workflows/real-price-probe.yml'
   workflow_dispatch:
 
 permissions:
